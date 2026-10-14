@@ -18,8 +18,9 @@
 package opennlp.tools.tokenize;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import opennlp.tools.util.ParamChecks;
 import opennlp.tools.util.Span;
@@ -80,7 +81,7 @@ public class BPETokenizer implements Tokenizer {
   public static final String END_OF_WORD = "</w>";
 
   /** Maps each merge pair to its priority rank. */
-  private final LinkedHashMap<SymbolPair, Integer> mergeRanks;
+  private final Map<String, Map<String, Integer>> mergeRanks;
 
   /**
    * Initializes a {@link BPETokenizer} from a trained
@@ -92,9 +93,11 @@ public class BPETokenizer implements Tokenizer {
   public BPETokenizer(final BPEModel model) {
     ParamChecks.requireNonNullArg(model, "model");
     final List<SymbolPair> merges = model.getMerges();
-    this.mergeRanks = new LinkedHashMap<>();
+    this.mergeRanks = new HashMap<>();
     for (int i = 0; i < merges.size(); i++) {
-      mergeRanks.put(merges.get(i), i);
+      final SymbolPair pair = merges.get(i);
+      mergeRanks.computeIfAbsent(pair.left(), ignored -> new HashMap<>())
+          .put(pair.right(), i);
     }
   }
 
@@ -222,19 +225,22 @@ public class BPETokenizer implements Tokenizer {
 
     while (current.size() > 1) {
       int bestRank = Integer.MAX_VALUE;
-      SymbolPair bestPair = null;
+      String bestLeft = null;
+      String bestRight = null;
 
       for (int i = 0; i < current.size() - 1; i++) {
-        final SymbolPair pair = new SymbolPair(
-            current.get(i), current.get(i + 1));
-        final Integer rank = mergeRanks.get(pair);
+        final String left = current.get(i);
+        final String right = current.get(i + 1);
+        final Map<String, Integer> rightRanks = mergeRanks.get(left);
+        final Integer rank = rightRanks == null ? null : rightRanks.get(right);
         if (rank != null && rank < bestRank) {
           bestRank = rank;
-          bestPair = pair;
+          bestLeft = left;
+          bestRight = right;
         }
       }
 
-      if (bestPair == null) {
+      if (bestLeft == null) {
         break;
       }
 
@@ -242,9 +248,9 @@ public class BPETokenizer implements Tokenizer {
       int i = 0;
       while (i < current.size()) {
         if (i < current.size() - 1
-            && current.get(i).equals(bestPair.left())
-            && current.get(i + 1).equals(bestPair.right())) {
-          next.add(bestPair.left() + bestPair.right());
+            && current.get(i).equals(bestLeft)
+            && current.get(i + 1).equals(bestRight)) {
+          next.add(bestLeft + bestRight);
           i += 2;
         } else {
           next.add(current.get(i));
