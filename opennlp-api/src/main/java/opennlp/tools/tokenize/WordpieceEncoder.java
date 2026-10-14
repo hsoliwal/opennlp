@@ -294,8 +294,28 @@ public final class WordpieceEncoder implements SubwordTokenizer {
   @Override
   public List<SubwordPiece> encode(CharSequence text) {
     ParamChecks.requireNonNullArg(text, "text");
-    final String original = text.toString();
+    // Preserve the existing snapshot contract for arbitrary (possibly mutable) inputs.
+    return encodeStableView(text.toString());
+  }
 
+  /**
+   * Encodes an immutable, stable text view without materializing it as a String.
+   *
+   * <p>This opt-in path accepts composite {@link CharSequence} implementations, including
+   * M3 String views. Unlike {@link #encode(CharSequence)}, it does not snapshot its argument:
+   * callers must guarantee that code units, length and their ordering cannot change for the
+   * duration of the call. The output still uses UTF-16 offsets into the original view.</p>
+   *
+   * @param text An immutable, stable UTF-16 view; must not be {@code null}.
+   * @return The vocabulary pieces and original-text spans.
+   * @throws IllegalArgumentException If {@code text} is {@code null}.
+   */
+  public List<SubwordPiece> encodeImmutableView(CharSequence text) {
+    ParamChecks.requireNonNullArg(text, "text");
+    return encodeStableView(text);
+  }
+
+  private List<SubwordPiece> encodeStableView(CharSequence original) {
     // Stores an original-text range for each normalized char.
     MappedText mapped = cleanAndIsolateCjk(original);
     if (lowerCase) {
@@ -419,11 +439,11 @@ public final class WordpieceEncoder implements SubwordTokenizer {
   }
 
   /** Removes BERT control characters, normalizes whitespace, and isolates CJK ideographs. */
-  private MappedText cleanAndIsolateCjk(String original) {
+  private MappedText cleanAndIsolateCjk(CharSequence original) {
     final MappedText out = new MappedText(original.length() + 16);
     int i = 0;
     while (i < original.length()) {
-      final int codePoint = original.codePointAt(i);
+      final int codePoint = Character.codePointAt(original, i);
       final int width = Character.charCount(codePoint);
       if (codePoint == 0 || codePoint == REPLACEMENT_CHARACTER || BertNormalization.isControl(codePoint)) {
         i += width;
