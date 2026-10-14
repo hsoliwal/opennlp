@@ -188,6 +188,29 @@ After cloning the repository go into the destination directory and run:
 mvn install
 ```
 
+### Choosing build and test scope
+
+Run commands from the repository root. `mvn install` includes the `verify`
+phase and installs the reactor artifacts in your local Maven repository; it
+is not needed merely to use an already published dependency.
+
+To run the Maven verification phase without installing artifacts locally:
+
+```sh
+mvn clean verify
+```
+
+The [evaluation module](opennlp-eval-tests/pom.xml) skips its tests by default.
+Its `eval-tests` and `high-memory-tests` profiles opt into separate evaluation
+suites; a normal build does not establish their results. The latter profile
+configures a 20 GB test JVM heap, so inspect its requirements before enabling it.
+
+For the CI command and its model-download cache configuration, see the
+[Java CI workflow](.github/workflows/maven.yml). Draft pull requests run a
+Linux/JDK 21 smoke build; the wider OS/JDK matrix and shell tests are reserved
+for non-draft pull requests. A successful draft build therefore does not
+establish that the full matrix passed.
+
 ### Additional Development Information
 
 - Building and integrating [Snowball Stemmer](dev/Snowball-Stemmer.md) for OpenNLP.
