@@ -75,24 +75,32 @@ public class DefaultTokenContextGenerator implements TokenContextGenerator {
     String suffix = sentence.substring(index);
     preds.add("p=" + prefix);
     preds.add("s=" + suffix);
+    // Retain only code units, not another spelling or slice cache. Reads stay at
+    // their original first-use boundary so protected hooks keep exception order.
+    final char f1;
     if (index > 0) {
-      addCharPreds("p1", sentence.charAt(index - 1), preds);
+      final char p1 = sentence.charAt(index - 1);
+      addCharPreds("p1", p1, preds);
       if (index > 1) {
-        addCharPreds("p2", sentence.charAt(index - 2), preds);
-        preds.add("p21=" + sentence.charAt(index - 2) + sentence.charAt(index - 1));
+        final char p2 = sentence.charAt(index - 2);
+        addCharPreds("p2", p2, preds);
+        preds.add("p21=" + p2 + p1);
       }
       else {
         preds.add("p2=bok");
       }
-      preds.add("p1f1=" + sentence.charAt(index - 1) + sentence.charAt(index));
+      f1 = sentence.charAt(index);
+      preds.add("p1f1=" + p1 + f1);
     }
     else {
       preds.add("p1=bok");
+      f1 = sentence.charAt(index);
     }
-    addCharPreds("f1", sentence.charAt(index), preds);
+    addCharPreds("f1", f1, preds);
     if (index + 1 < sentence.length()) {
-      addCharPreds("f2", sentence.charAt(index + 1), preds);
-      preds.add("f12=" + sentence.charAt(index) + sentence.charAt(index + 1));
+      final char f2 = sentence.charAt(index + 1);
+      addCharPreds("f2", f2, preds);
+      preds.add("f12=" + f1 + f2);
     }
     else {
       preds.add("f2=bok");
