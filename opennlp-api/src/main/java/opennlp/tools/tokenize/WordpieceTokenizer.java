@@ -218,9 +218,7 @@ public class WordpieceTokenizer implements Tokenizer {
     // becomes a single unknown token, as in the reference BERT implementation.
     for (final String token : split) {
 
-      final char[] characters = token.toCharArray();
-
-      if (Character.codePointCount(characters, 0, characters.length) <= maxTokenLength) {
+      if (token.codePointCount(0, token.length()) <= maxTokenLength) {
 
         // The pieces of this word. Only added to the result if the whole word matches.
         final List<String> wordPieces = new LinkedList<>();
@@ -231,16 +229,16 @@ public class WordpieceTokenizer implements Tokenizer {
         boolean found = true;
 
         // Look at the token from the start.
-        while (start < characters.length) {
+        while (start < token.length()) {
 
-          end = characters.length;
+          end = token.length();
           found = false;
 
           // Look at the token from the end until the end is equal to the start.
           while (start < end) {
 
             // The substring is the part of the token we are looking at now.
-            String substring = String.valueOf(characters, start, end - start);
+            String substring = token.substring(start, end);
 
             // This is a substring so prefix it with ##.
             if (start > 0) {
@@ -262,7 +260,7 @@ public class WordpieceTokenizer implements Tokenizer {
             }
 
             // Subtract 1 from the end to find the next longest piece in the vocabulary.
-            end -= Character.charCount(Character.codePointBefore(characters, end));
+            end -= Character.charCount(token.codePointBefore(end));
 
           }
 
