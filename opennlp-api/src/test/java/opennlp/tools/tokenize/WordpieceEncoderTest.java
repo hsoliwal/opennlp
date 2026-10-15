@@ -67,6 +67,89 @@ class WordpieceEncoderTest {
     assertEquals(expectedEnd, piece.end(), "end of " + piece);
   }
 
+  /**
+   * An immutable composite view intentionally offers no flattening boundary. Its UTF-16 code units
+   * are read across leaf boundaries, including a surrogate pair split between two leaves.
+   */
+  private static CharSequence immutableComposite(String... sourceParts) {
+    final String[] parts = sourceParts.clone();
+    int totalLength = 0;
+    for (final String part : parts) {
+      totalLength = Math.addExact(totalLength, part.length());
+    }
+    final int length = totalLength;
+    return new CharSequence() {
+      @Override
+      public int length() {
+        return length;
+      }
+
+      @Override
+      public char charAt(int index) {
+        if (index < 0 || index >= length) {
+          throw new IndexOutOfBoundsException(index);
+        }
+        int offset = index;
+        for (final String part : parts) {
+          if (offset < part.length()) {
+            return part.charAt(offset);
+          }
+          offset -= part.length();
+        }
+        throw new AssertionError("unreachable char index");
+      }
+
+      @Override
+      public CharSequence subSequence(int start, int end) {
+        throw new AssertionError("subSequence would create a compatibility boundary");
+      }
+
+      @Override
+      public String toString() {
+        throw new AssertionError("an immutable composite view must not be flattened");
+      }
+    };
+  }
+
+  @Test
+  void testImmutableCompositeViewPreservesWordpiecesAndUtf16Offsets() {
+    final String[][] splitTexts = {
+        {"", ""},
+        {"Hel", "lo, ", "WORLD!"},
+        {"Caf", "\u00E9", " hello"},
+        {"A", "\uD840", "\uDC00", "B"},
+        {"a\uD800", ".", "\uDC00"},
+        {"\u4E2D", "\u56FD", "\u2028", "hello\u2029world"},
+        {"\u0301", "abc", "\u200B", "def"},
+        {"\u03A3\u03BF", "\u03A6", "\u039F\u03A3"}
+    };
+    for (final boolean lowerCase : new boolean[] {true, false}) {
+      final WordpieceEncoder encoder = new WordpieceEncoder(VOCAB, lowerCase);
+      for (final String[] leaves : splitTexts) {
+        final String string = String.join("", leaves);
+        final List<SubwordPiece> expected = encoder.encode(string);
+        final List<SubwordPiece> actual = encoder.encodeImmutableView(immutableComposite(leaves));
+        assertEquals(expected, actual, "composite view mismatch for " + codePointList(string));
+      }
+    }
+  }
+
+  @Test
+  void testLegacyEncodeStillSnapshotsMutableCharSequence() {
+    final StringBuilder mutable = new StringBuilder("Hello, WORLD!");
+    final List<SubwordPiece> expected = uncased().encode(mutable.toString());
+    assertEquals(expected, uncased().encode(mutable));
+    mutable.setLength(0);
+    assertEquals(6, expected.size(), "previously emitted pieces must retain their values");
+  }
+
+  @Test
+  void testImmutableViewRejectsNullText() {
+    assertEquals("text must not be null",
+        assertThrows(IllegalArgumentException.class,
+            () -> uncased().encodeImmutableView(null)).getMessage());
+  }
+
   @Test
   void testGeneratedInputsMatchReferenceNormalizationOrder() {
     final int[] pool = {'a', 'B', ' ', '\t', '\n', 0x00A0, 0x00C9, 0x0130, 0x0301,
