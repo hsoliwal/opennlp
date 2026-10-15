@@ -72,7 +72,7 @@ public final class RegexNameFinder implements TokenNameFinder {
   @Override
   public Span[] find(String[] tokens) {
     Map<Integer, Integer> sentencePosTokenMap = new HashMap<>();
-    StringBuilder sentenceString = new StringBuilder(tokens.length * 10);
+    M3RegexTextBuilder sentenceString = new M3RegexTextBuilder(tokens.length * 10);
 
     for (int i = 0; i < tokens.length; i++) {
 
@@ -93,7 +93,7 @@ public final class RegexNameFinder implements TokenNameFinder {
     if (regexMap != null) {
       for (Map.Entry<String, Pattern[]> entry : regexMap.entrySet()) {
         for (Pattern mPattern : entry.getValue()) {
-          Matcher matcher = mPattern.matcher(sentenceString);
+          Matcher matcher = mPattern.matcher(sentenceString.input());
 
           while (matcher.find()) {
             Integer tokenStartIndex =
@@ -110,7 +110,7 @@ public final class RegexNameFinder implements TokenNameFinder {
       }
     } else {
       for (Pattern mPattern : mPatterns) {
-        Matcher matcher = mPattern.matcher(sentenceString);
+        Matcher matcher = mPattern.matcher(sentenceString.input());
 
         while (matcher.find()) {
           Integer tokenStartIndex =
