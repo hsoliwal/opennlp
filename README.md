@@ -15,6 +15,83 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
+<!-- fork-homepage:start -->
+# OpenNLP: turn text into structured language data
+
+**A Java NLP toolkit for finding sentences, tokens, tags, entities, and other useful structure in text.** This is the public `hsoliwal` fork of [Apache OpenNLP](https://github.com/apache/opennlp). Start here to choose a layer, try a small example, and understand the inspected 3.x development layout before taking on the full toolkit.
+
+## What you can explore here
+
+- **Application APIs:** tokenize text, detect sentences and languages, assign part-of-speech tags, identify entities, and load task-specific models.
+- **Training and evaluation:** create models from annotated examples and evaluate them against held-out data. A model that loads successfully is not automatically suitable for your language or domain.
+- **Source and tooling:** public contracts in [opennlp-api](opennlp-api), implementations in [opennlp-runtime](opennlp-core/opennlp-runtime), terminal tools in [opennlp-cli](opennlp-core/opennlp-cli), and optional [extensions](opennlp-extensions).
+
+The fork's documentation maps modules, representative APIs, and verification gaps. The code and algorithms come from the upstream project; this homepage does not claim a new fork-specific NLP engine. The inspected root version is `3.0.0-SNAPSHOT`, a development checkout rather than a published Apache release. Any M3 integration discussed in the [fork guide](FORK_GUIDE.md) is proposed, not implemented by these documentation changes. Upstream badges below describe their linked upstream resources, not this fork's test results.
+
+## Concepts in one minute
+
+| Concept | Meaning | Why it matters |
+| --- | --- | --- |
+| Token | A word-like unit or punctuation item | Later tagging and entity tasks usually consume token arrays |
+| Sentence detection | Splitting text into sentence units | Sentence boundaries and token boundaries answer different questions |
+| Model | Learned parameters for a particular task | Runtime code and a trained model are separate dependencies |
+| Inference / training | Applying a model / learning it from labeled examples | Training needs appropriate data, compute, and evaluation |
+| Span | A start/end range in text or tokens | Token indexes must not be mistaken for character offsets |
+| Maven reactor | Related projects built together | `-pl` selects a module; `-am` includes its reactor dependencies |
+
+For example, `Tokenizer.tokenizePos` returns positions in the input string, while a name finder's spans refer to the supplied token array. Keep the token-to-text mapping if annotations must highlight the original text. See the [API contracts](FORK_GUIDE.md) before combining task results.
+
+## Quick start: inspect, then test one layer
+
+Use JDK 21 and Maven 3.9.x, with the [root POM](pom.xml) enforcing a Maven minimum of 3.9.0. Initial builds need dependency downloads. From a terminal:
+
+```sh
+git clone https://github.com/hsoliwal/opennlp.git
+cd opennlp
+git rev-parse HEAD
+java -version
+mvn -version
+mvn -pl opennlp-core/opennlp-runtime -am test
+```
+
+This selects runtime unit tests and prerequisites. It does not run every optional evaluation or verify all model quality. External-dataset and high-memory evaluations have their own configuration in [opennlp-eval-tests](opennlp-eval-tests/pom.xml).
+
+## Worked example: model-free tokenization
+
+From the checkout root, build the distribution, extract its binary archive, and enter the extracted directory. The following filenames match this snapshot; update them if the project version changes. Keep the extracted `bin` and `lib` together.
+
+```sh
+mvn -pl opennlp-distr -am package
+tar -xzf opennlp-distr/target/apache-opennlp-3.0.0-SNAPSHOT-bin.tar.gz
+cd apache-opennlp-3.0.0-SNAPSHOT
+bin/opennlp SimpleTokenizer help
+printf '%s\n' 'Hello, OpenNLP!' | bin/opennlp SimpleTokenizer
+```
+
+The [SimpleTokenizer command](opennlp-core/opennlp-cli/src/main/java/opennlp/tools/cmdline/tokenizer/SimpleTokenizerTool.java) splits using character classes without a downloaded model. This is a small launcher/input-flow exercise; trained tokenization uses different task/model inputs described in the [tokenizer manual](opennlp-docs/src/docbkx/tokenizer.xml). Commands here were source-reviewed, not executed for this homepage update.
+
+## Compact command cheat sheet
+
+Run build commands from the checkout root, not the extracted distribution.
+
+| Goal | Command / next source |
+| --- | --- |
+| Test public API projects | `mvn -pl opennlp-api -am test` |
+| Test runtime projects | `mvn -pl opennlp-core/opennlp-runtime -am test` |
+| Generate the manual | `mvn -pl opennlp-docs -am package` |
+| Run the configured reactor verification | `mvn clean verify` |
+| Build and install local artifacts | `mvn install` |
+| Review a documentation edit | `git diff --check` |
+| Select model resources | [Model-loading chapter](opennlp-docs/src/docbkx/model-loading.xml) |
+
+If Maven reports a Java mismatch, check the Java home printed by `mvn -version`. If a module cannot be found, use its full nested path. If a model cannot load, distinguish a missing resource, wrong task/type, and incompatible runtime rather than substituting an unrelated binary.
+
+**Go deeper:** [module and lifecycle guide](FORK_GUIDE.md) · [package evidence and remaining gaps](PACKAGE_INVENTORY.md) · [manual source](opennlp-docs/src/docbkx/opennlp.xml) · [contributing](.github/CONTRIBUTING.md) · [security policy](SECURITY.md) · [license](LICENSE) and [notices](NOTICE).
+
+## Preserved upstream project documentation
+
+<!-- fork-homepage:end -->
+
 Welcome to Apache OpenNLP!
 ===========
 
