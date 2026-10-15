@@ -62,10 +62,20 @@ public class SimpleTokenizer extends AbstractTokenizer {
   @Override
   public Span[] tokenizePos(String s) {
     CharacterEnum charType = CharacterEnum.WHITESPACE;
-    CharacterEnum state = charType;
-
-    List<Span> tokens = new ArrayList<>();
     int sl = s.length();
+    return tokenizePosSequence(s, sl, charType);
+  }
+
+  // M3: one scanner over borrowed UTF-16 storage; existing String entrypoint remains authoritative.
+  Span[] tokenizePosSequence(CharSequence s) {
+    CharacterEnum charType = CharacterEnum.WHITESPACE;
+    int sl = s.length();
+    return tokenizePosSequence(s, sl, charType);
+  }
+
+  private Span[] tokenizePosSequence(CharSequence s, int sl, CharacterEnum charType) {
+    CharacterEnum state = charType;
+    List<Span> tokens = new ArrayList<>();
     int start = -1;
     char pc = 0;
     for (int ci = 0; ci < sl; ci++) {
