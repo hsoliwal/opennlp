@@ -31,6 +31,7 @@ class M3TokenizersTest {
     String[] examples = {"", "Cats running...", "é\u0301", "A\uD83D\uDE00B", "\uD800\uDC00\uDC00",
         "\u0000\t\n\r\f\u0085\u00a0\u2028", "१२३abc９９", "+++--==", "a\u001cb"};
     synchronized (SimpleTokenizer.INSTANCE) {
+      boolean previous = SimpleTokenizer.INSTANCE.keepNewLines;
       try {
         for (boolean newlines : new boolean[] {false, true}) {
           SimpleTokenizer.INSTANCE.setKeepNewLines(newlines);
@@ -40,7 +41,7 @@ class M3TokenizersTest {
                 outcome(() -> M3Tokenizers.simpleSpans(source)));
           }
         }
-      } finally { SimpleTokenizer.INSTANCE.setKeepNewLines(false); }
+      } finally { SimpleTokenizer.INSTANCE.setKeepNewLines(previous); }
     }
   }
   @Test void randomizedUtf16AndCheckpointCancellation() {
