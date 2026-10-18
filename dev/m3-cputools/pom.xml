@@ -8,8 +8,7 @@
     <groupId>org.codehaus.mojo</groupId><artifactId>exec-maven-plugin</artifactId><version>3.5.1</version>
     <executions><execution><id>check-canonical-runtime-pass</id><phase>verify</phase><goals><goal>exec</goal></goals>
       <configuration><executable>python3</executable><arguments>
-        <argument>${synexia.recipe.home}/synexia-openrewrite-recipes/recipes/cputools-runtime-20261015/verify.py</argument>
-        <argument>--kind</argument><argument>opennlp</argument>
+        <argument>${synexia.recipe.home}/synexia-openrewrite-recipes/recipes/opennlp-public-fork-replay-20261018/verify.py</argument>
         <argument>--target</argument><argument>${project.basedir}/../..</argument>
       </arguments></configuration>
     </execution></executions>
