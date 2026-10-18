@@ -63,6 +63,25 @@ public interface Document {
   }
 
   /**
+   * Creates an empty {@link Document} retaining an immutable view of the original text.
+   * No snapshot or whole-text conversion is performed. Derived documents returned by
+   * {@link #with(LayerKey, List)} and {@link #merge(Document)} retain the same view.
+   *
+   * <p>The caller must ensure that the sequence's content and length remain unchanged
+   * for the lifetime of this document and every derived document. Use {@link #of(CharSequence)}
+   * when the input may change. Annotation offsets are UTF-16 indexes into the supplied
+   * sequence, including when that sequence is composed of several immutable pieces.</p>
+   *
+   * @param text The immutable original document text. Must not be {@code null}.
+   * @return A {@link Document} without any layers, retaining {@code text}.
+   * @throws IllegalArgumentException Thrown if {@code text} is {@code null}.
+   * @since 3.0.0
+   */
+  static Document ofImmutableView(CharSequence text) {
+    return ImmutableDocument.emptyImmutableView(text);
+  }
+
+  /**
    * @return The original text of the document. Never {@code null}.
    */
   CharSequence text();

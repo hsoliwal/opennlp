@@ -101,8 +101,9 @@ class M3BpePreparedPairLookupTest {
         new SymbolPair("b", "a"),
         new SymbolPair("a", "b"));
     final BPETokenizer tokenizer = new BPETokenizer(model(duplicates));
-    Assertions.assertArrayEquals(oracle("aba", duplicates), tokenizer.tokenize("aba"));
-    Assertions.assertArrayEquals(new String[] {"a", "ba"}, tokenizer.tokenize("aba"));
+    // Keep both competing pairs before the end-of-word symbol so duplicate ranks matter.
+    Assertions.assertArrayEquals(oracle("abab", duplicates), tokenizer.tokenize("abab"));
+    Assertions.assertArrayEquals(new String[] {"a", "ba", "b"}, tokenizer.tokenize("abab"));
 
     final List<SymbolPair> overlapping = List.of(
         new SymbolPair("a", "a"),

@@ -37,6 +37,7 @@ import opennlp.tools.models.ModelType;
 import opennlp.tools.util.DownloadUtil;
 import opennlp.tools.util.ObjectStream;
 import opennlp.tools.util.OwnerOrPerThreadState;
+import opennlp.tools.util.ParamChecks;
 import opennlp.tools.util.Span;
 import opennlp.tools.util.StringList;
 import opennlp.tools.util.TrainingParameters;
@@ -174,7 +175,8 @@ public class TokenizerME extends AbstractTokenizer implements Probabilistic {
   /**
    * {@inheritDoc}
    *
-   * The sequence was determined based on the previous call to {@link #tokenizePos(String)}.
+   * The sequence was determined based on the previous call to {@link #tokenizePos(String)}
+   * or {@link #tokenizePosImmutableView(CharSequence)} on the current thread.
    *
    * @return an array with the same number of probabilities as tokens were sent to the computational method
    *     when {@link #tokenizePos(String)} was last called; if not applicable, an empty array
@@ -202,13 +204,39 @@ public class TokenizerME extends AbstractTokenizer implements Probabilistic {
    * @return   A {@link Span} array containing individual tokens as elements.
    */
   @Override
-  @SuppressForbidden("user-supplied alphanumeric pattern stored in the tokenizer model")
   public Span[] tokenizePos(String d) {
     Span[] tokens = (keepNewLines ? WHITESPACE_KEEPING_NEW_LINES : WHITESPACE).tokenizePos(d);
+    return tokenizeSpans(d, tokens);
+  }
+
+  /**
+   * Tokenizes an immutable text view, preserving UTF-16 offsets into the supplied sequence.
+   * The whitespace scan uses {@link CharSequence#length()} and {@link CharSequence#charAt(int)}.
+   * Model features and protected abbreviation hooks receive a string for each whitespace
+   * token, so no whole-source snapshot or {@link CharSequence#toString()} call is needed.
+   *
+   * <p>The caller must keep the sequence's content and length unchanged during this call.
+   * Probabilities are published through {@link #probs()} with the same per-thread behavior
+   * as {@link #tokenizePos(String)}. Newline handling and model decisions are unchanged.</p>
+   *
+   * @param d The immutable text to tokenize. Must not be {@code null}.
+   * @return A {@link Span} array containing individual tokens as elements.
+   * @throws IllegalArgumentException Thrown if {@code d} is {@code null}.
+   * @since 3.0.0
+   */
+  public Span[] tokenizePosImmutableView(CharSequence d) {
+    ParamChecks.requireNonNullArg(d, "d");
+    Span[] tokens = (keepNewLines ? WHITESPACE_KEEPING_NEW_LINES : WHITESPACE)
+        .tokenizePosSequence(d);
+    return tokenizeSpans(d, tokens);
+  }
+
+  @SuppressForbidden("user-supplied alphanumeric pattern stored in the tokenizer model")
+  private Span[] tokenizeSpans(CharSequence d, Span[] tokens) {
     List<Span> localTokens = new ArrayList<>();
     List<Double> localProbs = new ArrayList<>(50);
     for (Span s : tokens) {
-      String tok = d.substring(s.getStart(), s.getEnd());
+      String tok = tokenText(d, s);
       // Can't tokenize single characters
       if (tok.length() < 2) {
         localTokens.add(s);
@@ -256,6 +284,17 @@ public class TokenizerME extends AbstractTokenizer implements Probabilistic {
     Span[] spans = new Span[localTokens.size()];
     localTokens.toArray(spans);
     return spans;
+  }
+
+  private static String tokenText(CharSequence text, Span span) {
+    if (text instanceof String string) {
+      return string.substring(span.getStart(), span.getEnd());
+    }
+    char[] token = new char[span.length()];
+    for (int i = 0; i < token.length; i++) {
+      token[i] = text.charAt(span.getStart() + i);
+    }
+    return new String(token);
   }
 
   /**

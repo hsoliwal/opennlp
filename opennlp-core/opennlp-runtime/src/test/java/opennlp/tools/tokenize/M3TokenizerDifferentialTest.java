@@ -17,6 +17,9 @@
 
 package opennlp.tools.tokenize;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +28,7 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -74,6 +78,13 @@ class M3TokenizerDifferentialTest {
   }
 
   private static void compare(String text, int split) {
+    if (text == null) {
+      // A hot JVM may reuse message-free exceptions. Exact message comparison is forked below.
+      assertThrows(NullPointerException.class,
+          () -> M3BaselineSimpleTokenizer.INSTANCE.tokenizePos(null));
+      assertThrows(NullPointerException.class, () -> SimpleTokenizer.INSTANCE.tokenizePos(null));
+      return;
+    }
     Outcome expected = outcome(() -> M3BaselineSimpleTokenizer.INSTANCE.tokenizePos(text));
     assertEquals(expected, outcome(() -> SimpleTokenizer.INSTANCE.tokenizePos(text)));
     if (text != null) {
@@ -143,6 +154,34 @@ class M3TokenizerDifferentialTest {
       } finally {
         SimpleTokenizer.INSTANCE.setKeepNewLines(previous);
       }
+    }
+  }
+
+  @Test
+  void exactNullMessagesInAnIsolatedInterpreter() throws Exception {
+    Path output = Files.createTempFile("m3-tokenizer-null-", ".log");
+    String executable = System.getProperty("os.name").startsWith("Windows") ? "java.exe" : "java";
+    String java = Path.of(System.getProperty("java.home"), "bin", executable).toString();
+    String classpath = System.getProperty("surefire.test.class.path",
+        System.getProperty("java.class.path"));
+    Process child = null;
+    try {
+      child = new ProcessBuilder(java, "-Xint", "-XX:-OmitStackTraceInFastThrow",
+          "-XX:+ShowCodeDetailsInExceptionMessages", "-cp", classpath,
+          M3TokenizerNullProbe.class.getName()).redirectErrorStream(true)
+          .redirectOutput(output.toFile()).start();
+      assertTrue(child.waitFor(45, TimeUnit.SECONDS), "isolated null probe timed out");
+      String report;
+      try (var input = Files.newInputStream(output)) {
+        report = new String(input.readNBytes(8192), StandardCharsets.UTF_8);
+      }
+      assertEquals(0, child.exitValue(), report);
+      assertTrue(report.contains("M3_NULL_MESSAGE_PROBE_PASS comparisons=20000"), report);
+    } finally {
+      if (child != null && child.isAlive()) {
+        child.destroyForcibly().waitFor(5, TimeUnit.SECONDS);
+      }
+      Files.deleteIfExists(output);
     }
   }
 

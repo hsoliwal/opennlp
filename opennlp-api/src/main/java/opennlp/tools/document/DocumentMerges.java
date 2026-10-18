@@ -41,10 +41,26 @@ final class DocumentMerges {
                              Document.DuplicateLayerPolicy duplicateLayers) {
     ParamChecks.requireNonNullArg(other, "other");
     ParamChecks.requireNonNullArg(duplicateLayers, "duplicateLayers");
-    if (!document.text().toString().contentEquals(other.text())) {
+    if (!sameText(document.text(), other.text())) {
       throw new IllegalArgumentException(
           "merge requires both documents to carry the same text");
     }
+  }
+
+  private static boolean sameText(CharSequence left, CharSequence right) {
+    if (left == right) {
+      return true;
+    }
+    final int length = left.length();
+    if (length != right.length()) {
+      return false;
+    }
+    for (int i = 0; i < length; i++) {
+      if (left.charAt(i) != right.charAt(i)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
