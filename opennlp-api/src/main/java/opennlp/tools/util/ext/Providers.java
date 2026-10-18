@@ -799,6 +799,11 @@ public final class Providers<P extends Provider<?>> {
     final Set<String> disabled = disabledNames();
     final Set<String> allowed = allowedClasses();
     final List<Registration<P>> found = new ArrayList<>();
+    // Admit the validated caller-supplied SPI when this owner is an explicit module.
+    final Module ownerModule = Providers.class.getModule();
+    if (ownerModule.isNamed() && !ownerModule.canUse(spi)) {
+      ownerModule.addUses(spi);
+    }
     final Iterator<ServiceLoader.Provider<P>> iterator =
         ServiceLoader.load(spi, loader).stream().iterator();
     int failures = 0;
