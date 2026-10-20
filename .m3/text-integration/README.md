@@ -28,3 +28,15 @@ Both original and revised receivers passed locally: **1,052,956 checks**, coveri
 Maven is absent locally; direct scripts were used. CI now requests the same gate through Maven, and its actual results must be inspected. Full product reactor/lint/JUnit/model tests, patched OpenRewrite/canonical admission, M3JDK runtime and representative performance qualification remain separate. No end-to-end speedup is asserted.
 
 Not implemented: token-local hierarchical feature preparation, frozen-model feature IDs, shared sentence ownership, interner-policy changes, JNI model evaluation or whole-repository coverage. Donor/category decisions are recorded in the15-entry catalogue. No editorial/submission code or GPL OpenJDK source was copied.
+
+## Current canonical recipe source custody (2026-10-18)
+
+The reusable recipe source closure from this fork is held in `hsoliwal/com.synexia` at `215546d1ca0e724eb2c8e2e8ef6b4adce724733a`. The [dated custody binding](../SYNEXIA_RECIPE_SOURCE_CUSTODY_20261018.json) records the exact public source revisions, canonical snapshot paths, source seals and the separate execution limits. The current source-custody ledger is `synexia-openrewrite-recipes/recipe-crates/public-fork-home-20261018/SOURCE_CUSTODY.tsv` (SHA-256 `ebcfbd42a49eec806f0a4572af731828deda41f22c17250d34d49af985d78f1d`).
+
+Existing public source and SDK/proof mirrors retain their recorded provider revisions because their build and proof callers have not yet migrated to a qualified canonical handoff. Keep improvements in the canonical recipe source and return qualified postimages to this target. Existing native builds, product APIs, runtime acceptance and promotion remain target-owned.
+
+The retained-mirror source revision is the frozen custody origin. Separate current packet applications may update target paths under those roots; their exact inputs, outputs and qualification limits are recorded independently below.
+
+The binding's original-packet verification covers only its listed packets. The [current recipe census](https://github.com/hsoliwal/com.synexia/blob/215546d1ca0e724eb2c8e2e8ef6b4adce724733a/synexia-openrewrite-recipes/recipe-crates/public-fork-home-20261018/evidence/CURRENT_RECIPE_CENSUS.json) (SHA-256 `cfa9edb42a99cb2e54a988b28de7078a3233fdc667c5e4d8f979675e0f767ee0`) records the separate admission, application and gate evidence for current packets. Canonical kernel checks do not establish SDK or product runtime qualification: the canonical SDK attempt was blocked before compilation with zero tests. The binding-only application does not run native product qualification; gate attempts for separate product packet applications are recorded in the current census.
+
+The sealed binding and execution-receipt packets under `.m3/recipe-source-custody-20261018/` are pinned proof mirrors. They grant no competing recipe ownership or product promotion authority.
