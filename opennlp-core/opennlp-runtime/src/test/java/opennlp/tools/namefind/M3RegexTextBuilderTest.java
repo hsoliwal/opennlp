@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * Additional M3 String compatibility tests. The Apache upstream tests are unchanged.
+ */
 package opennlp.tools.namefind;
 
 import java.util.Random;
@@ -28,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** First-party M3 compatibility regression; upstream ASF test sources are unchanged. */
 class M3RegexTextBuilderTest {
   private static final String[] ATOMS = {
       "a", "b", " ", "\n", "\uD83D\uDE00", "\uD800", "\uDC00", "", "abc", null

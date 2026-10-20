@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// SPDX-License-Identifier: Apache-2.0
 package opennlp.tools.namefind;
 
 import java.util.Arrays;
