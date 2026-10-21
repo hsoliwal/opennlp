@@ -55,3 +55,23 @@ LeetCode/HackerRank/GeeksforGeeks implementations are not applicable donors here
 Full PR #13 admission remains separate: synchronize the four files changed independently
 on `main`, re-run the entire affected reactor, ASF checks, and required tests before merging.
 Do not treat this one successful oracle repair as an all-forks release proof.
+
+## 2026-10-21 additive two-oracle convergence
+
+PR #18 retained a second independent historical fixture,
+`preservesDuplicateRanksBeforeEndOfWordOnLongerInput`, which intentionally
+contains `new SymbolPair("b", "a")`. Its first word-final fixture already
+contains `new SymbolPair("b", "a" + BPETokenizer.END_OF_WORD)`.
+A whole-file count (`old=1:new=1`) incorrectly rejected this valid superset.
+
+The qualified recipe now anchors the named word-final test method and confines
+its exact one-before/one-after search to that method. Its self-test covers
+both oracles together, unchanged historical text, fixed-point replay,
+duplicate target anchors and wrong-method rejection. The workflow expected
+Git blob is updated from the historical single-oracle
+`d52c687aa38683017709c90a9ddc8df9cb66d5cf` to the inspected
+two-oracle merge source `81c2ab57bd6c59dc0e652177af7baeb928b2ac1a`.
+
+The generated M3 BPE test source remains unchanged. The source recipe and
+receipt move together; BPE runtime APIs and internals remain unchanged.
+Full CI qualification on the exact PR head is still required.
