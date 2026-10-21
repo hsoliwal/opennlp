@@ -114,6 +114,19 @@ class M3BpePreparedPairLookupTest {
   }
 
   @Test
+  void preservesDuplicateRanksBeforeEndOfWordOnLongerInput() {
+    // Preserve the independent competing-pair oracle from PR #14 without
+    // reverting the current mainline end-of-word fixture.
+    final List<SymbolPair> duplicates = List.of(
+        new SymbolPair("a", "b"),
+        new SymbolPair("b", "a"),
+        new SymbolPair("a", "b"));
+    final BPETokenizer tokenizer = new BPETokenizer(model(duplicates));
+    Assertions.assertArrayEquals(oracle("abab", duplicates), tokenizer.tokenize("abab"));
+    Assertions.assertArrayEquals(new String[] {"a", "ba", "b"}, tokenizer.tokenize("abab"));
+  }
+
+  @Test
   void matchesReferenceAcrossSeededMergeRankAndUtf16Cases() {
     final Random random = new Random(20261014L);
     final String[] units = {"a", "b", "c", "a", "é", "\uD83D", "\uDE80"};
