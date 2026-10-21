@@ -799,6 +799,9 @@ public final class Providers<P extends Provider<?>> {
     final Set<String> disabled = disabledNames();
     final Set<String> allowed = allowedClasses();
     final List<Registration<P>> found = new ArrayList<>();
+    // Preserve generic SPI discovery when this toolkit runs as a named module.
+    // The caller may define an SPI that cannot be named in our static descriptor.
+    Providers.class.getModule().addUses(spi);
     // Admit the validated caller-supplied SPI when this owner is an explicit module.
     final Module ownerModule = Providers.class.getModule();
     if (ownerModule.isNamed() && !ownerModule.canUse(spi)) {

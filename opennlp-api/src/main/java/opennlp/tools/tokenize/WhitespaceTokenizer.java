@@ -66,12 +66,19 @@ public class WhitespaceTokenizer extends AbstractTokenizer {
 
   @Override
   public Span[] tokenizePos(String d) {
+    return tokenizePosSequence(d, d.length());
+  }
+
+  Span[] tokenizePosSequence(CharSequence d) {
+    return tokenizePosSequence(d, d.length());
+  }
+
+  private Span[] tokenizePosSequence(CharSequence d, int end) {
     int tokStart = -1;
     List<Span> tokens = new ArrayList<>();
     boolean inTok = false;
 
     // gather potential tokens
-    int end = d.length();
     for (int i = 0; i < end; i++) {
       if (StringUtil.isWhitespace(d.charAt(i))) {
         if (inTok) {

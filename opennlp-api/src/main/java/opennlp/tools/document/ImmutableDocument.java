@@ -33,16 +33,17 @@ import opennlp.tools.util.Span;
  * <p>Instances are immutable: {@link #with(LayerKey, List)} returns a new document that
  * shares the unchanged layers with its ancestor, copying the map but not the layers, so
  * documents grown from a common ancestor share their layer lists. The text is captured
- * as a {@link String} at construction, so a mutable {@link CharSequence} handed to
- * {@link #empty(CharSequence)} cannot change the document afterwards. That immutability
- * makes instances safe to share between threads.</p>
+ * as a {@link String} by {@link #empty(CharSequence)}, so a mutable input cannot change
+ * that document afterwards. {@link #emptyImmutableView(CharSequence)} instead retains
+ * a caller-owned immutable sequence. Sharing either form between threads requires that
+ * its text remain immutable.</p>
  */
 final class ImmutableDocument implements Document {
 
-  private final String text;
+  private final CharSequence text;
   private final Map<LayerKey<?>, List<Annotation<?>>> layers;
 
-  private ImmutableDocument(String text, Map<LayerKey<?>, List<Annotation<?>>> layers) {
+  private ImmutableDocument(CharSequence text, Map<LayerKey<?>, List<Annotation<?>>> layers) {
     this.text = text;
     this.layers = Collections.unmodifiableMap(layers);
   }
@@ -58,6 +59,18 @@ final class ImmutableDocument implements Document {
   static ImmutableDocument empty(CharSequence text) {
     ParamChecks.requireNonNullArg(text, "text");
     return new ImmutableDocument(text.toString(), Collections.emptyMap());
+  }
+
+  /**
+   * Creates a document retaining a caller-owned immutable sequence without copying it.
+   *
+   * @param text The original text, immutable for the lifetime of all derived documents.
+   * @return An empty {@link ImmutableDocument} sharing {@code text}.
+   * @throws IllegalArgumentException Thrown if {@code text} is {@code null}.
+   */
+  static ImmutableDocument emptyImmutableView(CharSequence text) {
+    ParamChecks.requireNonNullArg(text, "text");
+    return new ImmutableDocument(text, Collections.emptyMap());
   }
 
   /** {@inheritDoc} */
