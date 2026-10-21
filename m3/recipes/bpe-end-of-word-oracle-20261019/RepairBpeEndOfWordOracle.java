@@ -48,13 +48,23 @@ public final class RepairBpeEndOfWordOracle {
   }
 
   static String rewrite(String source) {
-    if (!source.contains(TEST)) {
+    final String signature = "void " + TEST + "() {";
+    final int start = source.indexOf(signature);
+    if (start < 0 || source.indexOf(signature, start + signature.length()) >= 0) {
       throw new IllegalArgumentException("BPE_TEST_ORACLE_IDENTITY_MISMATCH");
     }
-    int oldCount = occurrences(source, OLD);
-    int newCount = occurrences(source, NEW);
+    // Only the named regression method owns this recipe. A later historical
+    // oracle deliberately retains OLD and must not be counted or rewritten.
+    final int end = source.indexOf("\n  @Test", start + signature.length());
+    if (end < 0) {
+      throw new IllegalArgumentException("BPE_TEST_ORACLE_METHOD_BOUNDARY_MISSING");
+    }
+    final String scope = source.substring(start, end);
+    final int oldCount = occurrences(scope, OLD);
+    final int newCount = occurrences(scope, NEW);
     if (oldCount == 1 && newCount == 0) {
-      return source.replace(OLD, NEW);
+      return source.substring(0, start) + scope.replace(OLD, NEW)
+          + source.substring(end);
     }
     if (oldCount == 0 && newCount == 1) {
       return source;
@@ -68,18 +78,30 @@ public final class RepairBpeEndOfWordOracle {
   }
 
   private static void selfTest() {
-    String old = "void " + TEST + "() {\n" + OLD + "\n}";
-    String fixed = rewrite(old);
-    if (!fixed.equals("void " + TEST + "() {\n" + NEW + "\n}")
-        || !rewrite(fixed).equals(fixed)) {
+    final String old = "  @Test\n  void " + TEST + "() {\n" + OLD
+        + "\n  }\n\n  @Test\n  void historical() {\n" + OLD + "\n  }\n";
+    final String expected = "  @Test\n  void " + TEST + "() {\n" + NEW
+        + "\n  }\n\n  @Test\n  void historical() {\n" + OLD + "\n  }\n";
+    final String fixed = rewrite(old);
+    if (!fixed.equals(expected) || !rewrite(fixed).equals(fixed)) {
       throw new AssertionError("BPE_RECIPE_NOT_FIXED_POINT");
     }
+    final String targetPrefix = "void " + TEST + "() {\n" + OLD;
+    final String duplicate = old.replace(targetPrefix, targetPrefix + "\n" + OLD);
     try {
-      rewrite(old + "\n" + OLD);
-      throw new AssertionError("BPE_RECIPE_ACCEPTED_DUPLICATE_ANCHOR");
-    } catch (IllegalArgumentException expected) {
-      if (!expected.getMessage().startsWith("BPE_TEST_ORACLE_SOURCE_DRIFT")) {
-        throw expected;
+      rewrite(duplicate);
+      throw new AssertionError("BPE_RECIPE_ACCEPTED_DUPLICATE_TARGET_ANCHOR");
+    } catch (IllegalArgumentException expectedFailure) {
+      if (!expectedFailure.getMessage().startsWith("BPE_TEST_ORACLE_SOURCE_DRIFT")) {
+        throw expectedFailure;
+      }
+    }
+    try {
+      rewrite(old.replace("void " + TEST + "() {", "void unexpected() {"));
+      throw new AssertionError("BPE_RECIPE_ACCEPTED_WRONG_METHOD");
+    } catch (IllegalArgumentException expectedFailure) {
+      if (!expectedFailure.getMessage().equals("BPE_TEST_ORACLE_IDENTITY_MISMATCH")) {
+        throw expectedFailure;
       }
     }
   }
