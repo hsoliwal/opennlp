@@ -43,6 +43,8 @@ jobs:
           set -euo pipefail
           java m3/recipes/bpe-end-of-word-oracle-20261019/RepairBpeEndOfWordOracle.java --self-test
           java m3/recipes/bpe-end-of-word-oracle-20261019/RepairBpeEndOfWordOracle.java --check opennlp-core/opennlp-runtime/src/test/java/opennlp/tools/tokenize/M3BpePreparedPairLookupTest.java
-          test "$(git hash-object opennlp-core/opennlp-runtime/src/test/java/opennlp/tools/tokenize/M3BpePreparedPairLookupTest.java)" = "d52c687aa38683017709c90a9ddc8df9cb66d5cf"
+          # PR #18 retains the original pre-end-of-word oracle alongside the
+          # corrected word-final case; seal the combined two-oracle source.
+          test "$(git hash-object opennlp-core/opennlp-runtime/src/test/java/opennlp/tools/tokenize/M3BpePreparedPairLookupTest.java)" = "81c2ab57bd6c59dc0e652177af7baeb928b2ac1a"
       - name: Focused BPE Java 21 tests
         run: mvn -B -ntp -pl opennlp-core/opennlp-runtime -am -Dtest=M3BpePreparedPairLookupTest -Dsurefire.failIfNoSpecifiedTests=false test
