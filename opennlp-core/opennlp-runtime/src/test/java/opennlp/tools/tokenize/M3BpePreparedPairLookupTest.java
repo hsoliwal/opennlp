@@ -98,7 +98,7 @@ class M3BpePreparedPairLookupTest {
   void preservesDuplicateRanksAndOverlappingPairMerges() {
     final List<SymbolPair> duplicates = List.of(
         new SymbolPair("a", "b"),
-        new SymbolPair("b", "a"),
+        new SymbolPair("b", "a" + BPETokenizer.END_OF_WORD),
         new SymbolPair("a", "b"));
     final BPETokenizer tokenizer = new BPETokenizer(model(duplicates));
     // Keep both competing pairs before the end-of-word symbol so duplicate ranks matter.

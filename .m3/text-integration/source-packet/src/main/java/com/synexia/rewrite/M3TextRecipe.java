@@ -2,8 +2,12 @@
 package com.synexia.rewrite;
 
 import java.io.IOException;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Locale;
+import java.util.Objects;
 
 /** Filesystem adapter for the existing M3GpuToolJoinManifest; no second manifest parser. */
 public final class M3TextRecipe {
