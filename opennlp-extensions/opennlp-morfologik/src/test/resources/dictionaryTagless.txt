@@ -1,2 +1,0 @@
-carro,carro
-casa,casa

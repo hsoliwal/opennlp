@@ -1,6 +1,0 @@
-[CLS]
-[SEP]
-[UNK]
-hello
-world
-##ing
