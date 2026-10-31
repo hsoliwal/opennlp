@@ -38,6 +38,8 @@ public final class ParamChecks {
   private static final String NOT_BLANK_SUFFIX = " must not be null or blank";
   private static final String NOT_NEGATIVE_SUFFIX = " must not be negative";
   private static final String FINITE_SUFFIX = " must be finite";
+  private static final String POSITIVE_SUFFIX = " must be positive";
+  private static final String POSITIVE_FRACTION_SUFFIX = " must be in (0, 1]";
 
   private ParamChecks() {
     // utility class
@@ -173,6 +175,41 @@ public final class ParamChecks {
   }
 
   /**
+   * Returns {@code value} if it is greater than zero.
+   * <p>
+   * The message of a thrown exception is {@code "<name> must be positive"}.
+   *
+   * @param value The argument to check.
+   * @param name The parameter name used in the exception message.
+   * @return {@code value}, always greater than zero.
+   * @throws IllegalArgumentException Thrown if {@code value} is zero or negative.
+   */
+  public static int requirePositive(int value, String name) {
+    if (value <= 0) {
+      throw new IllegalArgumentException(name + POSITIVE_SUFFIX);
+    }
+    return value;
+  }
+
+  /**
+   * Returns {@code value} if it is greater than zero. Positive infinity passes; call
+   * {@link #requireFinite(double, String)} first where it is not allowed. The message of a
+   * thrown exception is {@code "<name> must be positive"}.
+   *
+   * @param value The argument to check.
+   * @param name The parameter name used in the exception message.
+   * @return {@code value}, always greater than zero.
+   * @throws IllegalArgumentException Thrown if {@code value} is zero, negative, or
+   *     {@code NaN}.
+   */
+  public static double requirePositive(double value, String name) {
+    if (!(value > 0)) {
+      throw new IllegalArgumentException(name + POSITIVE_SUFFIX);
+    }
+    return value;
+  }
+
+  /**
    * Returns {@code value} if it is finite.
    * <p>
    * The message of a thrown exception is {@code "<name> must be finite"}.
@@ -185,6 +222,24 @@ public final class ParamChecks {
   public static double requireFinite(double value, String name) {
     if (!Double.isFinite(value)) {
       throw new IllegalArgumentException(name + FINITE_SUFFIX);
+    }
+    return value;
+  }
+
+  /**
+   * Returns {@code value} if it is in (0, 1].
+   * <p>
+   * The message of a thrown exception is {@code "<name> must be in (0, 1]"}.
+   *
+   * @param value The argument to check.
+   * @param name The parameter name used in the exception message.
+   * @return {@code value}, always in {@code (0, 1]}.
+   * @throws IllegalArgumentException Thrown if {@code value} is not in {@code (0, 1]},
+   *     including {@code NaN}.
+   */
+  public static double requirePositiveFraction(double value, String name) {
+    if (!(value > 0 && value <= 1)) {
+      throw new IllegalArgumentException(name + POSITIVE_FRACTION_SUFFIX);
     }
     return value;
   }
