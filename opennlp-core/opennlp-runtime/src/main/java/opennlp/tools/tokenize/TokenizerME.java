@@ -231,7 +231,6 @@ public class TokenizerME extends AbstractTokenizer implements Probabilistic {
     return tokenizeSpans(d, tokens);
   }
 
-  @SuppressForbidden("user-supplied alphanumeric pattern stored in the tokenizer model")
   private Span[] tokenizeSpans(CharSequence d, Span[] tokens) {
     List<Span> localTokens = new ArrayList<>();
     List<Double> localProbs = new ArrayList<>(50);
